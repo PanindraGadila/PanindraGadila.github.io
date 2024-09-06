@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Checker</title>
+</head>
+<body>
+    <h1>Simple URL Checking site</h1>
+    <input type="text" id="urlInput" placeholder="Enter URL here">
+    <p id="result"></p>
+    <p id="result2"></p>
+</body>
+<script>
+//event handling and function calls upon click or input key press while typing
+document.getElementById('urlInput').addEventListener('input', throttle(trigger, 1000));
+
+//event handler function  to be callback
+async function trigger(){
+const urlInput = document.getElementById('urlInput').value;
+const resultElement = document.getElementById('result'); const resultElement2 = document.getElementById('result2');
+resultElement.textContent = ''; resultElement2.textContent = '';
+// Validating the URL format
+console.log(urlInput);
+
+//code for invalid URL check
+if (!Url_Format_check(urlInput)) {
+    resultElement.textContent = 'Invalid URL format!';
+    resultElement.style.color = 'red';
+    return;
+}
+//code for valid URL response check
+else if(Url_Format_check(urlInput)) {
+    resultElement.textContent = 'valid URL format'; resultElement.style.color = 'green';
+    //const proxyUrl = 'https://cors.io/?'; // proxy to get rid of browsers cors security block.
+    await fetch(urlInput, {mode: 'no-cors', method: 'GET', headers: { "Accept": "application/json" }}) // // Asynchronously check the URL existence (not mocked but real api response from real url server)
+    .then(response => {
+        if (response.ok||response.type=="opaque") {
+            resultElement2.textContent = `The URL ${urlInput} is up! and running`;
+            resultElement2.style.color = 'green';
+            if (urlInput.endsWith("/")) {
+                resultElement2.textContent += ", this URL request is a folder type resource on server";
+            }
+            else if (urlInput.endsWith(".html") || urlInput.endsWith(".txt") || urlInput.endsWith(".pdf")) {
+                resultElement2.textContent += ", this URL request is a file type resource";
+            }
+            else{
+                resultElement2.textContent += ", this URL request is a 'un-known' type resource";
+            }
+        }
+        else{
+        console.log(response);
+        resultElement2.textContent = "Site is down or page not found.";
+        resultElement2.style.color = 'red';}
+    })
+    .catch(error => {
+        resultElement2.textContent = "Error checking URL or down.";
+        resultElement2.style.color = 'red';
+        console.error(error);
+    });
+}   return;
+};
+
+//check the url format using regex functions
+function Url_Format_check(url) {
+    var res = url.match(/(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/gi);
+        return (res !== null);
+};
+// Throttling function in order to reduce the number of requests by input field using setTimeout
+function throttle(fct, delay) {
+  let timeout;
+  return function () {
+    const context = this, args = arguments;
+    clearTimeout(timeout);
+    timeout = setTimeout(() => fct.apply(context, args),   
+ delay);
+  };
+}
+</script>
+</html>
